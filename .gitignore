@@ -1,0 +1,4 @@
+*.mat
+*.pth
+*.SCP
+*.pyc
