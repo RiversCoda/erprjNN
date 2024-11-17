@@ -211,38 +211,3 @@ class Discriminator(nn.Module):
         x = self.layer4(x)
         return x
 
-# class Discriminator(nn.Module):
-#     def __init__(self, input_channels=1):
-#         super(Discriminator, self).__init__()
-#         self.layer1 = nn.Sequential(
-#             nn.Conv1d(input_channels, 64, kernel_size=4, stride=2, padding=1),
-#             nn.LeakyReLU(0.2)
-#         )
-#         self.layer2 = nn.Sequential(
-#             nn.Conv1d(64, 128, kernel_size=4, stride=2, padding=1),
-#             nn.BatchNorm1d(128),
-#             nn.LeakyReLU(0.2)
-#         )
-#         self.layer3 = nn.Sequential(
-#             nn.Conv1d(128, 256, kernel_size=4, stride=2, padding=1),
-#             nn.BatchNorm1d(256),
-#             nn.LeakyReLU(0.2)
-#         )
-#         self.layer4 = nn.Sequential(
-#             nn.Conv1d(256, 512, kernel_size=4, stride=1, padding=1),
-#             nn.BatchNorm1d(512),
-#             nn.LeakyReLU(0.2)
-#         )
-#         self.layer5 = nn.Sequential(
-#             nn.Conv1d(512, 1, kernel_size=4, stride=1, padding=1),
-#             nn.Sigmoid()
-#         )
-
-#     def forward(self, x):
-#         x = self.layer1(x)
-#         x = self.layer2(x)
-#         x = self.layer3(x)
-#         x = self.layer4(x)
-#         x = self.layer5(x)
-#         return x
- 

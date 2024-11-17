@@ -1,10 +1,25 @@
 import scipy.io as sio
 import os
 import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
 from scipy.ndimage import gaussian_filter
 
+# 创建50Hz高通滤波器
+def highpass_filter(data, cutoff=50, fs=1000, order=5):
+    nyquist = 0.5 * fs
+    normal_cutoff = cutoff / nyquist
+    b, a = butter(order, normal_cutoff, btype='high', analog=False)
+    return filtfilt(b, a, data)
+
+# 创建50Hz低通滤波器（此行先注释掉实际使用）
+def lowpass_filter(data, cutoff=200, fs=1000, order=5):
+    nyquist = 0.5 * fs
+    normal_cutoff = cutoff / nyquist
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return filtfilt(b, a, data)
+
 # 指定要读取的文件夹路径
-folder_path = r"collect_data\device3\noise_phone\sjx\scg"
+folder_path = r"addNoise_data\\test1\\raw\sjx\scg"
 # folder_path = r"quiet"
  
 # 遍历文件夹中的所有文件
@@ -32,11 +47,16 @@ for file_name in os.listdir(folder_path):
                 
                 # 绘制 line 2-4
                 for i in range(1, 4):
-                    acc0 = 0-accresult[i]
-                    # 高斯滤波acc0
-                    # acc0 = gaussian_filter(acc0, sigma=5)
-
-                    axs[i-1].plot(acc0)
+                    acc0 = 0 - accresult[i]
+                    
+                    # 应用50Hz高通滤波
+                    # acc0_1 = highpass_filter(acc0)
+                    
+                    # 这里可以选择性应用低通滤波，将下一行取消注释以实际使用
+                    acc0_1 = lowpass_filter(acc0)
+                    
+                    # 绘制高通滤波后的信号（若使用低通滤波则改为 acc0_lp）
+                    axs[i-1].plot(acc0_1)
                     axs[i-1].set_title(f'Line {i+1} of {file_name}')
                     axs[i-1].set_xlabel('Sample Index')
                     axs[i-1].set_ylabel('Amplitude')

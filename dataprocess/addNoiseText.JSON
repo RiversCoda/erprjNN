@@ -1,0 +1,12 @@
+{
+    "quiet_data_paths": [
+        "train_data/device3/p4-test/*/scg/*.mat",
+        "test_data/device3/p4-test/*/scg/*.mat"
+    ],
+    "noise_data_paths": [
+        "collect_data/device3/noise_1*/*/scg/*.mat"
+    ],
+    "window_size": 2000,
+    "step_size": 1000,
+    "noise_multiplier": 6
+}

@@ -7,14 +7,15 @@ from tqdm import tqdm
 # from gan_codes.gan_datalder import get_dataloader
 # from gan_datalder import *
 from gan_datalder_test import *
+import random
 
 # from gan_codes.gan_model import UNetGenerator, Discriminator
 from gan_model import UNetGenerator, Discriminator, MultiLayerMultiHeadTransformer
 
 # Hyperparameters
 batch_size = 16
-learning_rate_G = 0.00001
-learning_rate_D = 0.000005
+learning_rate_G = 0.0001
+learning_rate_D = 0.00005
 num_epochs = 500
 save_interval = 10
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -49,19 +50,23 @@ criterion_L1 = nn.L1Loss()
 optimizer_G = optim.Adam(generator.parameters(), lr=learning_rate_G)
 optimizer_D = optim.Adam(discriminator.parameters(), lr=learning_rate_D)
 
+# ... (保留前面的代码)
+
 # Training loop
 for epoch in range(num_epochs):
-    pbar = tqdm(total=len(clean_loader), desc=f'Epoch {epoch+1}/{num_epochs}')
+    pbar = tqdm(total=min(len(clean_loader), min(len(loader) for loader in noise_loaders.values())), desc=f'Epoch {epoch+1}/{num_epochs}')
+    noise_iters = {noise_type: iter(loader) for noise_type, loader in noise_loaders.items()}
     for i, (clean_data, _) in enumerate(clean_loader):
-        # Get corresponding noise data
-        noise_type = list(noise_loaders.keys())[i % len(noise_loaders)]
+        # Randomly select a noise type
+        noise_type = random.choice(list(noise_loaders.keys()))
         noise_loader = noise_loaders[noise_type]
-        noise_data_iter = iter(noise_loader)
+        noise_iter = noise_iters[noise_type]
         try:
-            noise_data, _ = next(noise_data_iter)
+            noise_data, _ = next(noise_iter)
         except StopIteration:
-            noise_data_iter = iter(noise_loader)
-            noise_data, _ = next(noise_data_iter)
+            noise_iter = iter(noise_loader)
+            noise_iters[noise_type] = noise_iter
+            noise_data, _ = next(noise_iter)
 
         clean_data = clean_data.unsqueeze(1).to(device)  # Shape: [batch_size, 1, window_size]
         noise_data = noise_data.unsqueeze(1).to(device)
@@ -71,12 +76,15 @@ for epoch in range(num_epochs):
 
         # Train Discriminator
         discriminator.zero_grad()
+        # Real data loss
         real_output = discriminator(clean_data)
-        fake_output = discriminator(fake_data.detach())
         real_labels = torch.ones_like(real_output).to(device)
-        fake_labels = torch.zeros_like(fake_output).to(device)
         loss_D_real = criterion_GAN(real_output, real_labels)
+        # Fake data loss
+        fake_output = discriminator(fake_data.detach())
+        fake_labels = torch.zeros_like(fake_output).to(device)
         loss_D_fake = criterion_GAN(fake_output, fake_labels)
+        # Total discriminator loss
         loss_D = (loss_D_real + loss_D_fake) * 0.5
         loss_D.backward()
         optimizer_D.step()
@@ -84,9 +92,8 @@ for epoch in range(num_epochs):
         # Train Generator
         generator.zero_grad()
         fake_output = discriminator(fake_data)
-        loss_G_GAN = criterion_GAN(fake_output, real_labels)
-        loss_G_L1 = criterion_L1(fake_data, clean_data)
-        loss_G = loss_G_GAN + 100 * loss_G_L1
+        real_labels = torch.ones_like(fake_output).to(device)  # Trick the discriminator
+        loss_G = criterion_GAN(fake_output, real_labels)
         loss_G.backward()
         optimizer_G.step()
 

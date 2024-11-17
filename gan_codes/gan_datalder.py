@@ -19,24 +19,32 @@ class HeartbeatDataset(Dataset):
             mat_files = glob.glob(os.path.join(data_dir, '*.mat'))
             for file_path in mat_files:
                 mat = scipy.io.loadmat(file_path)
-                # Extract y-axis acceleration data (1 x 5000)
-                signal = mat['accresult'][0, 0, 1, :]  # Adjust indices if necessary
+                # 调试信息
+                print(f"Processing file: {file_path}")
+                print(f"Keys in mat: {mat.keys()}")
+                print(f"Type of mat['accresult']: {type(mat['accresult'])}")
+                print(f"Shape of mat['accresult']: {mat['accresult'].shape}")
 
-                # Preprocess signal
+                # 根据实际形状调整索引
+                accresult = mat['accresult']  # 形状为 (4, 5000)
+                # 假设第二行是 y 轴加速度数据
+                signal = accresult[1, :]  # 提取第 1 行的数据
+
+                # 预处理信号
                 if self.preprocess:
                     signal = self._preprocess_signal(signal)
 
-                # Normalize signal
+                # 归一化信号
                 if self.normalize:
                     signal = (signal - np.mean(signal)) / np.std(signal)
 
-                # Sliding window
+                # 滑动窗口分割
                 segments = self._segment_signal(signal)
                 self.data.extend(segments)
 
-                # Assign labels
-                if noise_type:
-                    self.labels.extend([noise_type] * len(segments))
+                # 分配标签
+                if self.noise_type:
+                    self.labels.extend([self.noise_type] * len(segments))
                 else:
                     self.labels.extend(['clean'] * len(segments))
 
@@ -46,11 +54,10 @@ class HeartbeatDataset(Dataset):
     def __getitem__(self, idx):
         signal = self.data[idx]
         label = self.labels[idx]
-        # Convert label to numerical value if necessary
         return torch.FloatTensor(signal), label
 
     def _preprocess_signal(self, signal):
-        # Add your preprocessing steps here (e.g., filtering)
+        # 在这里添加您的预处理步骤（例如滤波）
         return signal
 
     def _segment_signal(self, signal):
