@@ -1,5 +1,4 @@
-对于如下工程，请协助我修改，在训练和测试中，为代码添加：100Hz低通滤波器和归一化功能
-# dn_dataloader.py
+对于如下工程，请协助我修改，在训练和测试中，为代码添加：100Hz低通滤波器和归一化功能。请告诉我要修改哪些代码。
 ``` py
 import os
 import glob
@@ -105,7 +104,6 @@ import torch
 import torch.optim as optim
 from torch.cuda import amp
 from dn_dataloader import get_dataloader
-# from dn_dl import *
 from dn_model import TransformerDenoiser, Discriminator
 from dn_utils import *                            
 import torch.nn as nn
@@ -189,7 +187,6 @@ if __name__ == '__main__':
 
 ```py
 import torch
-# from dn_dataloader import get_dataloader
 from dn_dl import *
 from dn_model import TransformerDenoiser
 from dn_utils import *
@@ -278,10 +275,5 @@ def load_model(model, model_path):
     model.eval()
     print(f'Model loaded from {model_path}')
 
-def lowpass_filter(data, cutoff=100, fs=1000, order=5):
-    nyquist = 0.5 * fs
-    normal_cutoff = cutoff / nyquist
-    b, a = butter(order, normal_cutoff, btype='low', analog=False)
-    return filtfilt(b, a, data)
 ```
 

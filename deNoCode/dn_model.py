@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class TransformerDenoiser(nn.Module):
-    def __init__(self, input_dim=2000, num_layers=8, nhead=4, dim_feedforward=512):
+    def __init__(self, input_dim=2000, num_layers=8, nhead=8, dim_feedforward=512):
         super(TransformerDenoiser, self).__init__()
         self.embedding = nn.Linear(input_dim, dim_feedforward)
         encoder_layer = nn.TransformerEncoderLayer(d_model=dim_feedforward, nhead=nhead)

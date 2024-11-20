@@ -2,7 +2,6 @@ import torch
 import torch.optim as optim
 from torch.cuda import amp
 from dn_dataloader import get_dataloader
-# from dn_dl import *
 from dn_model import TransformerDenoiser, Discriminator
 from dn_utils import *                            
 import torch.nn as nn
@@ -11,16 +10,16 @@ from tqdm import tqdm
 # Hyperparameters
 # model_type = 'gan'  # 'gan' or 'transformer'
 model_type = 'transformer'
-num_epochs = 100
+num_epochs = 500
 batch_size = 64
-learning_rate = 5e-5
-save_every = 5  # Save model every 5 epochs
+learning_rate = 1e-5
+save_every = 1  # Save model every 5 epochs
 root_dir = 'addNoise_data'
 num_workers = 4
 
 def train():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    dataloader = get_dataloader(root_dir, '20241113', batch_size, num_workers)
+    dataloader = get_dataloader(root_dir, '20241120', batch_size, num_workers)
 
     if model_type == 'transformer':
         model = TransformerDenoiser().to(device)
