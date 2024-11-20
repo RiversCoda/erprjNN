@@ -7,7 +7,7 @@
         "collect_data/device3/noise_1*/*/scg/*.mat"
     ],
     "window_size": 2000,
-    "step_size": 1000,
-    "noise_multiplier": 6,
-    "timestamp": "20241113211406"
+    "step_size": 500,
+    "noise_multiplier": 10,
+    "timestamp": "20241113165425"
 }
