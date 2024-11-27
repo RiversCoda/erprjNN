@@ -49,3 +49,7 @@ def normalize(data):
     std = np.std(data)
     normalized_data = (data - mean) / std
     return normalized_data.astype(np.float32)
+
+# -1 到 1的标准化
+def normalize_1_1(data):
+    aa = 1
