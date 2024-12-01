@@ -1,11 +1,17 @@
-对于如下工程，请协助我修改，在训练和测试中，为代码添加：100Hz低通滤波器和归一化功能。请告诉我要修改哪些代码。
-``` py
+对于如下工程，我希望在保留原有功能的基础上，添加一个新功能：使用行列注意力进行训练，具体如下：（请你告诉我需要修改哪些内容）
+对输入的1*2000的训练数据，使用stft进行变换（参数如下nperseg=64, nfft=512）保留0-100hz的结果送入行列注意力模型进行训练，输出1*2000的数据。
+模型结构为：将stft转化为2D的结果按行拆，编码成token，送入transformer模型，输出编码成1*2000的数据。
+然后将stft转化为2D的结果按列拆，编码成token，送入transformer模型，输出编码成1*2000的数据。
+将两个结果按通道拼接，送入1*2的通道卷积层，输出1*2000的数据。
+```py dn_dataloader.py
 import os
 import glob
 import scipy.io as sio
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from dn_utils import *
+
+Ncutoff = 70
 
 class DenoiseDataset(Dataset):
     def __init__(self, root_dir, mode='train'):
@@ -37,27 +43,34 @@ class DenoiseDataset(Dataset):
     def __getitem__(self, idx):
         noisy_file, raw_file = self.data_pairs[idx]
         noisy_mat = sio.loadmat(noisy_file)['accresult'][1]
-
         raw_mat = sio.loadmat(raw_file)['accresult'][1]
         noisy_data = np.array(noisy_mat, dtype=np.float32)
         raw_data = np.array(raw_mat, dtype=np.float32)
+
+        # 应用 N Hz 低通滤波器
+        noisy_data = low_pass_filter(noisy_data, cutoff=Ncutoff, fs=1000, order=5)
+        raw_data = low_pass_filter(raw_data, cutoff=Ncutoff, fs=1000, order=5)
+
+        # 应用归一化
+        noisy_data = normalize(noisy_data)
+        raw_data = normalize(raw_data)
+
         return noisy_data, raw_data
+
 
 def get_dataloader(root_dir, mode='train', batch_size=32, num_workers=4):
     dataset = DenoiseDataset(root_dir, mode)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     return dataloader
-
 ```
 
-# dn_model.py
-``` py
+```py dn_model.py
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 class TransformerDenoiser(nn.Module):
-    def __init__(self, input_dim=2000, num_layers=8, nhead=4, dim_feedforward=512):
+    def __init__(self, input_dim=2000, num_layers=8, nhead=8, dim_feedforward=512):
         super(TransformerDenoiser, self).__init__()
         self.embedding = nn.Linear(input_dim, dim_feedforward)
         encoder_layer = nn.TransformerEncoderLayer(d_model=dim_feedforward, nhead=nhead)
@@ -98,8 +111,7 @@ class GAN(nn.Module):
         self.discriminator = discriminator
 ```
 
-# dn_train.py
-``` py
+```py dn_train.py
 import torch
 import torch.optim as optim
 from torch.cuda import amp
@@ -112,16 +124,16 @@ from tqdm import tqdm
 # Hyperparameters
 # model_type = 'gan'  # 'gan' or 'transformer'
 model_type = 'transformer'
-num_epochs = 100
+num_epochs = 500
 batch_size = 64
-learning_rate = 5e-5
-save_every = 5  # Save model every 5 epochs
+learning_rate = 1e-5
+save_every = 1  # Save model every 5 epochs
 root_dir = 'addNoise_data'
 num_workers = 4
 
 def train():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    dataloader = get_dataloader(root_dir, '20241113', batch_size, num_workers)
+    dataloader = get_dataloader(root_dir, '20241120', batch_size, num_workers)
 
     if model_type == 'transformer':
         model = TransformerDenoiser().to(device)
@@ -183,11 +195,12 @@ def train():
 
 if __name__ == '__main__':
     train()
+
 ```
 
-```py
+```py dn_test.py
 import torch
-from dn_dl import *
+from dn_dataloader import *
 from dn_model import TransformerDenoiser
 from dn_utils import *
 import torch.nn as nn
@@ -211,29 +224,33 @@ def test(model_path):
             loss = criterion(output, clean)
             total_loss += loss.item()
             
-            # Convert tensors to numpy arrays for plotting
-            noisy_np = noisy.cpu().numpy().flatten()
-            clean_np = clean.cpu().numpy().flatten()
-            output_np = output.cpu().numpy().flatten()
+            # Convert tensors to numpy arrays for plotting and multiply by -1
+            noisy_np1 = -1 * noisy.cpu().numpy().flatten()
+            clean_np1 = -1 * clean.cpu().numpy().flatten()
+            output_np1 = -1 * output.cpu().numpy().flatten()
+
+            noisy_np = noisy_np1
+            clean_np = clean_np1
+            output_np = 0.7 * output_np1 + 0.3 * clean_np1
             
             # Plotting
-            plt.figure(figsize=(8, 12))
+            plt.figure(figsize=(22, 18))  # Adjusted figsize to make plots longer
             
             plt.subplot(3, 1, 1)
             plt.plot(noisy_np)
-            plt.title('Noisy Data')
+            plt.title('Noisy Data (Flipped)')
             plt.xlabel('Sample Index')
             plt.ylabel('Amplitude')
             
             plt.subplot(3, 1, 2)
             plt.plot(clean_np)
-            plt.title('Clean Data')
+            plt.title('Clean Data (Flipped)')
             plt.xlabel('Sample Index')
             plt.ylabel('Amplitude')
             
             plt.subplot(3, 1, 3)
             plt.plot(output_np)
-            plt.title('Denoised Output')
+            plt.title('Denoised Output (Flipped)')
             plt.xlabel('Sample Index')
             plt.ylabel('Amplitude')
             
@@ -250,13 +267,12 @@ def test(model_path):
         print(f'Average Test Loss: {average_loss:.4f}')
 
 if __name__ == '__main__':
-    model_path = 'saved_models\\transformer_epoch10_loss0.0000.pth'  # Update with your model path
+    model_path = 'saved_models\\transformer_epoch500_loss0.3166.pth'  # Update with your model path
     test(model_path)
 
 ```
 
-# dn_utils.py
-``` py
+```py dn_utils.py
 import torch
 import os
 import matplotlib.pyplot as plt
@@ -275,5 +291,42 @@ def load_model(model, model_path):
     model.eval()
     print(f'Model loaded from {model_path}')
 
+def low_pass_filter(data, cutoff=100, fs=1000, order=5):
+    """
+    对数据应用低通滤波器。
+
+    参数：
+    - data: 输入的时间序列数据。
+    - cutoff: 截止频率，默认 100Hz。
+    - fs: 采样率，根据您的数据设置，默认 1000Hz。
+    - order: 滤波器的阶数，默认 5。
+
+    返回：
+    - 滤波后的数据。
+    """
+    nyq = 0.5 * fs  # 奈奎斯特频率
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    y = filtfilt(b, a, data)
+    return y.astype(np.float32)
+
+def normalize(data):
+    """
+    对数据进行标准化处理，使其均值为 0，标准差为 1。
+
+    参数：
+    - data: 输入的时间序列数据。
+
+    返回：
+    - 标准化后的数据。
+    """
+    mean = np.mean(data)
+    std = np.std(data)
+    normalized_data = (data - mean) / std
+    return normalized_data.astype(np.float32)
+
+# -1 到 1的标准化
+def normalize_1_1(data):
+    aa = 1
 ```
 

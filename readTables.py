@@ -16,7 +16,8 @@ class DataViewerApp(QWidget):
 
         # Initialize state variables
         # self.base_dir = 'collect_data\\device3\\p4-test'
-        self.base_dir = 'addNoise_data\\test\\raw'
+        # I:\erprjNN\NoiseColl\noise_11_12_zHead\wxw\scg
+        self.base_dir = 'NoiseColl\\noise_2'
         self.folders = self.get_scg_folders()
         self.current_folder_index = 0
         self.current_folder_name = ''
