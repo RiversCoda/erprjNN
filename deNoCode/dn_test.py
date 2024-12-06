@@ -30,7 +30,9 @@ def test(model_path):
 
             noisy_np = noisy_np1
             clean_np = clean_np1
-            output_np = 0.7 * output_np1 + 0.3 * clean_np1
+            clean_np1 = low_pass_filter(clean_np1, cutoff=80, fs=1000, order=5)
+            output_np = 0.7 * output_np1 + 0.3 * clean_np1 ####
+            # output_np = output_np1
             
             # Plotting
             plt.figure(figsize=(22, 18))  # Adjusted figsize to make plots longer
@@ -66,5 +68,5 @@ def test(model_path):
         print(f'Average Test Loss: {average_loss:.4f}')
 
 if __name__ == '__main__':
-    model_path = 'saved_models\\transformer_epoch500_loss0.3166.pth'  # Update with your model path
+    model_path = 'saved_models\\transformer_epoch23_loss0.6687.pth'  # Update with your model path
     test(model_path)

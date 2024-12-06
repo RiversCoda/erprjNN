@@ -1,0 +1,10 @@
+Model Type: baseline
+Model Path: save_models\\baseline_epoch20_loss0.0978.pth
+Batch Size: 32
+Number of Workers: 4
+Normalization Method: -1_to_1
+Apply Filter: False
+Testing Noise Path: addNoise_data\test1\noise\*\scg\*.mat
+Testing Raw Path: addNoise_data\test1\raw\*\scg\*.mat
+Number of Testing Samples: 100
+Average Test Loss: 0.106657

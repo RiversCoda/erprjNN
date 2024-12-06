@@ -1,0 +1,14 @@
+test_clean_dir: addNoise_data\test1\raw
+test_noise_dir: addNoise_data\test1\noise
+model_path: save_models\baseline_lr1e-03_nhead4_layers4_epoch1_loss1.074367.pt
+batch_size: 32
+num_workers: 4
+normalize_method: minmax
+mean: 0.0
+std: 1.0
+apply_filter: False
+model_type: baseline
+stft_mode: magnitude
+num_visualizations: 100
+visdiv: 50
+Average Test Loss: 1.389636

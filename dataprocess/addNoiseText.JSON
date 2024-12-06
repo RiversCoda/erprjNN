@@ -8,6 +8,6 @@
     ],
     "window_size": 2000,
     "step_size": 2000,
-    "noise_multiplier": 30
+    "noise_multiplier": 5
 }
 

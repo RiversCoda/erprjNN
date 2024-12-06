@@ -1,0 +1,17 @@
+train_clean_dir: addNoise_data\20241201\raw
+train_noise_dir: addNoise_data\20241201\noise
+batch_size: 32
+num_workers: 4
+normalize_method: minmax_minus1_1
+mean: 0.0
+std: 1.0
+apply_filter: False
+model_type: simple
+nhead: 4
+num_layers: 4
+dim_feedforward: 512
+epochs: 100
+save_every: 1
+stft_mode: magnitude
+learning_rate: 0.001
+visualize_every: 1

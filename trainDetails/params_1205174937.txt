@@ -1,0 +1,10 @@
+Model Type: baseline
+Epochs: 100
+Batch Size: 4
+Learning Rate: 0.0001
+Number of Workers: 4
+Normalization Method: -1_to_1
+Apply Filter: False
+Training Noise Path: addNoise_data\\20241205\\noise\\*\\scg\\*.mat
+Training Raw Path: addNoise_data\\20241205\\raw\\*\\scg\\*.mat
+Number of Training Samples: 6000

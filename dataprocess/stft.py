@@ -97,6 +97,9 @@ def process_and_plot_signal(signal,
     f = f[freq_mask]
     Zxx = Zxx[freq_mask, :]
 
+    # 输出STFT的形状
+    print(f"STFT结果的形状: {Zxx.shape}")
+
     # CWT计算
     cwt_result, time_cwt = cwt(signal, scales, fs)
     freqs_cwt = fs / scales
