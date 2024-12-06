@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
     # 用户信息
     user = "noise_phone"
-    user_id = "sjx"
+    user_id = "sjx_nysnew"
     save_path = "./collect_data/device3/"+user+"/"+user_id+"/scg"
     mk_ecg_path = "./collect_data/device3/"+user+"/"+user_id+"/ecg"
     os.makedirs(save_path, exist_ok=True)  # 创建保存数据的目录
